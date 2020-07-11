@@ -4,6 +4,7 @@
   "package": "com.trewghil.expandedfishing.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "MixinFishingBobberEntity"
   ],
   "client": [
   ],
