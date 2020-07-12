@@ -6,13 +6,13 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "weight": 80,
+          "weight": 60,
           "name": "expandedfishing:snapper"
         },
         {
           "type": "minecraft:item",
-          "weight": 20,
-          "name": "minecraft:diamond"
+          "weight": 40,
+          "name": "expandedfishing:moray_eel"
         }
       ]
     }
