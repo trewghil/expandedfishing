@@ -5,6 +5,6 @@ import net.minecraft.util.Identifier;
 
 public class ExpandedFishingLootTables {
 
-    public static final Identifier NIGHT_FISHING = ExpandedFishing.identify("nightfishing");
+    public static final Identifier NIGHT_FISHING = ExpandedFishing.identify("gameplay/nightfishing");
 
 }

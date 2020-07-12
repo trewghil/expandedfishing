@@ -4,6 +4,7 @@ import com.trewghil.expandedfishing.loot.ExpandedFishingLootTables;
 import net.minecraft.entity.projectile.FishingBobberEntity;
 import net.minecraft.loot.LootTable;
 import net.minecraft.loot.LootTables;
+
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
