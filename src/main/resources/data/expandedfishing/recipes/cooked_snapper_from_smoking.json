@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smoking",
+  "ingredient": {
+    "item": "expandedfishing:snapper"
+  },
+  "result": "expandedfishing:cooked_snapper",
+  "experience": 0.4,
+  "cookingtime": 100
+}
