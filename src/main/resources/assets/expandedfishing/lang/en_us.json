@@ -1,5 +1,7 @@
 {
   "item.expandedfishing.snapper": "Red Snapper",
   "item.expandedfishing.cooked_snapper": "Cooked Red Snapper",
-  "item.expandedfishing.moray_eel": "Moray Eel"
+  "item.expandedfishing.moray_eel": "Moray Eel",
+
+  "enchantment.expandedfishing.bountiful": "Bountiful"
 }
