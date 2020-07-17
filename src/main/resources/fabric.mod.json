@@ -16,6 +16,9 @@
   "entrypoints": {
     "main": [
       "com.trewghil.expandedfishing.ExpandedFishing"
+    ],
+    "client": [
+      "com.trewghil.expandedfishing.ExpandedFishingClient"
     ]
   },
   "mixins": [

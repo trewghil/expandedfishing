@@ -1,6 +1,7 @@
 package com.trewghil.expandedfishing;
 
 import com.trewghil.expandedfishing.enchantment.ExpandedFishingEnchantments;
+import com.trewghil.expandedfishing.entity.ExpandedFishingEntities;
 import com.trewghil.expandedfishing.item.ExpandedFishingItems;
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.util.Identifier;
@@ -16,6 +17,7 @@ public class ExpandedFishing implements ModInitializer {
 	@Override
 	public void onInitialize() {
 		ExpandedFishingItems.init();
+		ExpandedFishingEntities.init();
 		ExpandedFishingEnchantments.init();
 	}
 }

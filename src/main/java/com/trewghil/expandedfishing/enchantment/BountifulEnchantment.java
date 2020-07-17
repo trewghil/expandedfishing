@@ -19,4 +19,14 @@ public class BountifulEnchantment extends Enchantment {
     public int getMaxLevel() {
         return 5;
     }
+
+    @Override
+    public boolean isAvailableForEnchantedBookOffer() {
+        return false;
+    }
+
+    @Override
+    public boolean isAvailableForRandomSelection() {
+        return false;
+    }
 }

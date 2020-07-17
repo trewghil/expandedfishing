@@ -11,7 +11,7 @@ public class ExpandedFishingItems {
     public static final Item SNAPPER = new Item(new Item.Settings().group(ItemGroup.FOOD));
     public static final Item COOKED_SNAPPER = new Item(new Item.Settings().group(ItemGroup.FOOD).food(FoodComponents.COOKED_SALMON));
     public static final Item MORAY_EEL = new Item(new Item.Settings().group(ItemGroup.FOOD));
-    public static final Item SEA_URCHIN = new Item(new Item.Settings().group(ItemGroup.FOOD));
+    public static final SeaUrchinItem SEA_URCHIN = new SeaUrchinItem(new Item.Settings().group(ItemGroup.FOOD).maxCount(16));
 
     public ExpandedFishingItems() {}
 
