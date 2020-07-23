@@ -14,7 +14,8 @@ public class ExpandedFishingRenderers {
     public ExpandedFishingRenderers() {}
 
     public static void init() {
-        EntityRendererRegistry.INSTANCE.register(ExpandedFishingEntities.SEA_URCHIN_ENTITY, (dispatcher, context) -> new SeaUrchinRenderer(dispatcher));
+        EntityRendererRegistry.INSTANCE.register(ExpandedFishingEntities.SEA_URCHIN_ENTITY, (entityRenderDispatcher, context) -> new SeaUrchinRenderer(entityRenderDispatcher));
+        EntityRendererRegistry.INSTANCE.register(ExpandedFishingEntities.QUIPPER_ENTITY, ((entityRenderDispatcher, context) -> new QuipperRenderer(entityRenderDispatcher)));
 
         registerClientboundPackets();
     }

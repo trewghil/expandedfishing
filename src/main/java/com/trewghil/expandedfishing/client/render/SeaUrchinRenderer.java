@@ -2,8 +2,6 @@ package com.trewghil.expandedfishing.client.render;
 
 import com.trewghil.expandedfishing.entity.SeaUrchinEntity;
 import com.trewghil.expandedfishing.entity.model.SeaUrchinModel;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
 import net.minecraft.client.render.OverlayTexture;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;

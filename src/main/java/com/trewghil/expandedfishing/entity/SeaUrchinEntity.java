@@ -9,8 +9,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.thrown.ThrownItemEntity;
 import net.minecraft.item.Item;
 import net.minecraft.network.Packet;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
@@ -38,21 +38,20 @@ public class SeaUrchinEntity extends ThrownItemEntity {
         super.onPlayerCollision(player);
 
         player.damage(DamageSource.CACTUS, 1.0F);
+
+        this.world.sendEntityStatus(this, (byte) 3);
+        this.remove();
     }
 
     @Override
-    protected void onCollision(HitResult hitResult) {
+    protected void onBlockHit(BlockHitResult blockHitResult) {
+        super.onBlockHit(blockHitResult);
 
-        Vec3d pos = hitResult.getPos();
+        Vec3d hit = blockHitResult.getPos();
 
-        if(!this.world.isClient) {
-
-            //this.world.sendEntityStatus(this, (byte)3);
-            this.setVelocity(0.0, 0.0, 0.0);
-            this.setPos(pos.x, pos.y, pos.z);
-            this.setNoGravity(true);
-            //this.remove();
-        }
+        this.setVelocity(Vec3d.ZERO);
+        this.setNoGravity(true);
+        this.setPos(hit.getX(), hit.getY() - 0.1F, hit.getZ());
     }
 
     @Override
@@ -61,7 +60,7 @@ public class SeaUrchinEntity extends ThrownItemEntity {
 
         entityHitResult.getEntity().damage(DamageSource.thrownProjectile(this, this.getOwner()), 4.0F);
 
-        this.world.sendEntityStatus(this, (byte)3);
+        this.world.sendEntityStatus(this, (byte) 3);
         this.remove();
     }
 
