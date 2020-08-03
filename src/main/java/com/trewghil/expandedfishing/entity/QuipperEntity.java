@@ -1,5 +1,7 @@
 package com.trewghil.expandedfishing.entity;
 
+import com.trewghil.expandedfishing.entity.ai.quipper.QuipperAttackGoal;
+import com.trewghil.expandedfishing.entity.ai.quipper.SwarmTargetGoal;
 import com.trewghil.expandedfishing.network.EntitySpawnPacket;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
@@ -7,8 +9,6 @@ import net.minecraft.entity.MovementType;
 import net.minecraft.entity.ai.goal.*;
 import net.minecraft.entity.damage.DamageSource;
 
-import net.minecraft.entity.mob.MobEntityWithAi;
-import net.minecraft.entity.passive.FishEntity;
 import net.minecraft.entity.passive.SchoolingFishEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -18,37 +18,46 @@ import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import software.bernie.geckolib.animation.builder.AnimationBuilder;
+import software.bernie.geckolib.animation.controller.AnimationController;
+import software.bernie.geckolib.animation.controller.EntityAnimationController;
+import software.bernie.geckolib.entity.IAnimatedEntity;
+import software.bernie.geckolib.event.AnimationTestEvent;
+import software.bernie.geckolib.manager.EntityAnimationManager;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class QuipperEntity extends SchoolingFishEntity {
+public class QuipperEntity extends SchoolingFishEntity implements IAnimatedEntity {
 
     private QuipperEntity swarmLeader;
     private List<QuipperEntity> swarm = new ArrayList<>();
-    public boolean dashed = false;
+    private EntityAnimationManager manager = new EntityAnimationManager();
+    private AnimationController controller = new EntityAnimationController(this, "moveController", 20, this::animationPredicate);
 
     public QuipperEntity(EntityType<? extends SchoolingFishEntity> entityType, World world) {
         super(entityType, world);
+
+        registerAnimationControllers();
     }
 
     @Override
     protected void initGoals() {
-        this.goalSelector.add(1, new AttackGoal(this, 1.6F));
+        this.goalSelector.add(1, new QuipperAttackGoal(this, 1.6F));
         this.goalSelector.add(2, new SwarmTargetGoal(this, 6.0F));
         this.goalSelector.add(4, new SwimToRandomPlaceGoal(this));
         this.goalSelector.add(5, new FollowLeaderGoal(this));
-        this.goalSelector.add(3, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
+        this.goalSelector.add(6, new LookAtEntityGoal(this, PlayerEntity.class, 8.0F));
 
         this.targetSelector.add(1, new RevengeGoal(this, new Class[0]));
-        this.targetSelector.add(2, new FollowTargetGoal(this, PlayerEntity.class));
+        this.targetSelector.add(2, new FollowTargetGoal<>(this, PlayerEntity.class));
     }
 
     @Override
     public void travel(Vec3d movementInput) {
         if (this.canMoveVoluntarily() && this.isTouchingWater()) {
             if(this.hasTarget()) {
-                this.updateVelocity(0.06F, movementInput);
+                this.updateVelocity(0.05F, movementInput);
             } else {
                 this.updateVelocity(0.01F, movementInput);
             }
@@ -69,7 +78,7 @@ public class QuipperEntity extends SchoolingFishEntity {
         super.tick();
 
         this.goalSelector.getRunningGoals().forEach(goal -> {
-            System.out.print(goal.getGoal().toString() + ", ");
+            System.out.println(goal.getGoal().toString() + ", ");
         });
         System.out.println("\n");
     }
@@ -121,6 +130,10 @@ public class QuipperEntity extends SchoolingFishEntity {
         } else return this.getTarget().isAlive();
     }
 
+    public boolean isOnGround() {
+        return this.onGround;
+    }
+
     protected SoundEvent getAmbientSound() {
         return SoundEvents.ENTITY_COD_AMBIENT;
     }
@@ -148,118 +161,23 @@ public class QuipperEntity extends SchoolingFishEntity {
         return EntitySpawnPacket.createPacket(this);
     }
 
-
-    static class SwarmTargetGoal extends Goal {
-
-        protected final QuipperEntity mob;
-        protected final double speed;
-        private int moveDelay;
-
-        public SwarmTargetGoal(QuipperEntity mob, double speed) {
-            this.mob = mob;
-            this.speed = speed;
-        }
-
-        @Override
-        public boolean canStart() {
-            if(this.mob.getTarget() == null) {
-                return false;
-            } else return this.mob.getTarget().isAlive();
-        }
-
-        @Override
-        public void start() {
-            this.moveDelay = 0;
-        }
-
-        @Override
-        public void tick() {
-            super.tick();
-
-            if (--this.moveDelay <= 0) {
-                this.moveDelay = 10;
-                if(this.mob.hasTarget() && !this.mob.dashed) {
-                    this.mob.getLookControl().lookAt(this.mob.getTarget().getX(), this.mob.getTarget().getEyeY(), this.mob.getTarget().getZ());
-
-                    this.mob.getNavigation().startMovingTo(this.mob.getTarget(), this.speed);
-                }
-            }
-        }
-
-        @Override
-        public void stop() {
-            this.mob.getNavigation().stop();
-            super.stop();
-        }
-
-        @Override
-        public boolean shouldContinue() {
-            return !this.mob.getNavigation().isIdle() && !this.mob.hasPassengers() && this.mob.hasTarget() && !this.mob.dashed;
+    private <E extends QuipperEntity> boolean animationPredicate(AnimationTestEvent<E> event) {
+        if(event.isWalking()) {
+            controller.setAnimation(new AnimationBuilder().addAnimation("animation.quipper.swim").addAnimation("animation.quipper.swim", true));
+            return true;
+        } else {
+            controller.setAnimation(new AnimationBuilder().addAnimation("animation.quipper.idle", true));
+            return true;
         }
     }
 
-    static class AttackGoal extends MeleeAttackGoal {
+    private void registerAnimationControllers() {
+        manager.addAnimationController(controller);
+    }
 
-        private double dashVelocity;
-        private int cooldown;
-        private boolean jumped;
-        private boolean terminate;
-
-        public AttackGoal(QuipperEntity quipperEntity, double dashVelocity) {
-            super(quipperEntity, 1.0D, true);
-
-            this.dashVelocity = dashVelocity;
-        }
-
-        @Override
-        public void start() {
-            super.start();
-
-            this.terminate = false;
-            this.jumped = false;
-
-            cooldown = 30; //ticks
-
-            Vec3d vec3d = this.mob.getVelocity();
-            Vec3d direction = new Vec3d(this.mob.getTarget().getX() - this.mob.getX(), this.mob.getTarget().getY() - this.mob.getY(), this.mob.getTarget().getZ() - this.mob.getZ());
-            if (direction.lengthSquared() > 1.0E-7D) {
-                direction = direction.normalize().multiply(0.5D).add(vec3d.multiply(0.3D));
-            }
-
-            this.mob.setVelocity(direction.multiply(dashVelocity).x, direction.multiply(dashVelocity).y, direction.multiply(dashVelocity).z);
-            jumped = true;
-            ((QuipperEntity) this.mob).dashed = true;
-        }
-
-        @Override
-        public void tick() {
-            //super.tick();
-
-            if(this.mob.distanceTo(this.mob.getTarget()) <= 1.2f) {
-                this.mob.tryAttack(this.mob.getTarget());
-            }
-
-            if(this.jumped && cooldown > 0) {
-                cooldown--;
-            }
-            if(cooldown <= 0) {
-                this.jumped = false;
-                ((QuipperEntity) this.mob).dashed = false;
-                this.terminate = true;
-            }
-        }
-
-        public boolean canStart() {
-            return super.canStart() && !this.mob.hasPassengers() && this.mob.distanceTo(this.mob.getTarget()) <= 3f;
-        }
-
-        public boolean shouldContinue() {
-            return super.shouldContinue() && ((QuipperEntity) this.mob).hasTarget() && !this.terminate; //&& this.mob.distanceTo(this.mob.getTarget()) < 0.25f
-        }
-
-        protected double getSquaredMaxAttackDistance(LivingEntity entity) {
-            return (double)(4.0F + entity.getWidth());
-        }
+    @Override
+    public EntityAnimationManager getAnimationManager() {
+        return manager;
     }
 
     static class FollowTargetGoal<T extends LivingEntity> extends net.minecraft.entity.ai.goal.FollowTargetGoal<T> {
@@ -289,12 +207,10 @@ public class QuipperEntity extends SchoolingFishEntity {
     }
 
     static class FollowLeaderGoal extends FollowGroupLeaderGoal {
-
         private QuipperEntity fish;
 
         public FollowLeaderGoal(QuipperEntity fish) {
             super(fish);
-
             this.fish = fish;
         }
 
@@ -313,7 +229,7 @@ public class QuipperEntity extends SchoolingFishEntity {
         }
 
         public boolean canStart() {
-            return this.fish.hasSelfControl() &&  (this.fish.getTarget() == null || !this.fish.getTarget().isAlive()) && super.canStart();
+            return this.fish.hasSelfControl() &&  !this.fish.hasTarget() && super.canStart();
         }
     }
 }
