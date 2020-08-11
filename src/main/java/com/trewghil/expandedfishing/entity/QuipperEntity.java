@@ -25,13 +25,10 @@ import software.bernie.geckolib.entity.IAnimatedEntity;
 import software.bernie.geckolib.event.AnimationTestEvent;
 import software.bernie.geckolib.manager.EntityAnimationManager;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class QuipperEntity extends SchoolingFishEntity implements IAnimatedEntity {
 
-    private QuipperEntity swarmLeader;
-    private List<QuipperEntity> swarm = new ArrayList<>();
     private EntityAnimationManager manager = new EntityAnimationManager();
     private AnimationController controller = new EntityAnimationController(this, "moveController", 20, this::animationPredicate);
 
@@ -73,44 +70,11 @@ public class QuipperEntity extends SchoolingFishEntity implements IAnimatedEntit
         }
     }
 
-    @Override
-    public void tick() {
-        super.tick();
-
-        this.goalSelector.getRunningGoals().forEach(goal -> {
-            System.out.println(goal.getGoal().toString() + ", ");
-        });
-        System.out.println("\n");
-    }
-
-    @Override
-    public SchoolingFishEntity joinGroupOf(SchoolingFishEntity groupLeader) {
-        if(groupLeader instanceof QuipperEntity) {
-            this.swarmLeader = (QuipperEntity) groupLeader;
-
-            ((QuipperEntity) groupLeader).addToSwarm(this);
-
-            return super.joinGroupOf(groupLeader);
-        } else {
-            return groupLeader;
-        }
-    }
-
-    public void alertLeaderOfTarget() {
-        if(this.swarmLeader != null) {
-            this.swarmLeader.setTarget(this.getTarget());
-
-            this.swarmLeader.targetSelector.getRunningGoals().filter(goal -> goal.getGoal() instanceof FollowTargetGoal).forEach(goal -> {
-                ((FollowTargetGoal) goal.getGoal()).setTargetEntity(this.getTarget());
-            });
-
-            this.swarmLeader.alertSwarm();
-        }
-    }
-
     public void alertSwarm() {
-        if(this.hasOtherFishInGroup()) {
-            for(QuipperEntity e : this.swarm) {
+        List<QuipperEntity> nearby = this.world.getNonSpectatingEntities(QuipperEntity.class, this.getBoundingBox().expand(8.0D, 8.0D, 8.0D));
+
+        for(QuipperEntity e : nearby) {
+            if(!e.hasTarget()) {
                 e.setTarget(this.getTarget());
 
                 e.targetSelector.getRunningGoals().filter(goal -> goal.getGoal() instanceof FollowTargetGoal).forEach(goal -> {
@@ -118,10 +82,6 @@ public class QuipperEntity extends SchoolingFishEntity implements IAnimatedEntit
                 });
             }
         }
-    }
-
-    public void addToSwarm(QuipperEntity e) {
-        this.swarm.add(e);
     }
 
     public boolean hasTarget() {
@@ -162,6 +122,10 @@ public class QuipperEntity extends SchoolingFishEntity implements IAnimatedEntit
     }
 
     private <E extends QuipperEntity> boolean animationPredicate(AnimationTestEvent<E> event) {
+        if(!this.isSubmergedInWater()) {
+            controller.setAnimation(new AnimationBuilder().addAnimation("animation.quipper.flop").addAnimation("animation.quipper.flop", true));
+            return true;
+        }
         if(event.isWalking()) {
             controller.setAnimation(new AnimationBuilder().addAnimation("animation.quipper.swim").addAnimation("animation.quipper.swim", true));
             return true;
@@ -201,7 +165,8 @@ public class QuipperEntity extends SchoolingFishEntity implements IAnimatedEntit
 
             if(target != null && target.isTouchingWater()) {
                 this.targetEntity = target;
-                ((QuipperEntity) this.mob).alertLeaderOfTarget();
+
+                ((QuipperEntity) this.mob).alertSwarm();
             }
         }
     }

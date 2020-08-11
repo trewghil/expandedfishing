@@ -1,0 +1,26 @@
+{
+	"format_version": "1.8.0",
+	"animations": {
+		"animation.model.urchin": {
+			"loop": true,
+			"animation_length": 1.52,
+			"bones": {
+				"spines": {
+					"scale": {
+						"0.0": {
+							"vector": [1, 1, 1]
+						},
+						"0.7667": {
+							"vector": [1.1, 1.1, 1.1],
+							"easing": "easeInOutQuad"
+						},
+						"1.5167": {
+							"vector": [1, 1, 1],
+							"easing": "easeInOutQuad"
+						}
+					}
+				}
+			}
+		}
+	}
+}

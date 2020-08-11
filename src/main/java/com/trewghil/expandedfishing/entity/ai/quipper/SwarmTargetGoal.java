@@ -46,6 +46,6 @@ public class SwarmTargetGoal extends Goal {
 
     @Override
     public boolean shouldContinue() {
-        return !this.mob.getNavigation().isIdle() && !this.mob.hasPassengers() && this.mob.hasTarget(); //&& !this.mob.dashed;
+        return !this.mob.getNavigation().isIdle() && !this.mob.hasPassengers() && this.mob.hasTarget() && this.mob.getTarget().isTouchingWater();
     }
 }
